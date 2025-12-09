@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>{{ event.title }}</title>
+</head>
+<body>
+  <h1>{{ event.title }}</h1>
+
+  <p><strong>종류:</strong> {{ event.get_event_type_display }}</p>
+  <p><strong>시작 일시:</strong> {{ event.start_at }}</p>
+  <p><strong>종료 일시:</strong> {{ event.end_at|default:"-" }}</p>
+  <p><strong>관련 업체:</strong> {{ event.company|default:"-" }}</p>
+  <p><strong>관련 직원:</strong> {{ event.employee|default:"-" }}</p>
+
+  <p><strong>상세 내용:</strong><br>
+    {{ event.description|linebreaksbr }}
+  </p>
+
+  <p><a href="{% url 'calendar' %}">← 캘린더로 돌아가기</a></p>
+</body>
+</html>

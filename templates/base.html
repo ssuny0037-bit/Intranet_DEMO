@@ -1,0 +1,18 @@
+{% if expiration_alerts %}
+<div style="background:#ffcccc; padding:10px; border-bottom:2px solid #ff0000;">
+    <strong>⚠️ 만료 예정 알림:</strong>
+    <ul style="margin:5px 0 0 15px;">
+        {% for a in expiration_alerts %}
+            <li>
+                <a href="{{ a.url }}" style="font-weight:bold; color:#b30000; text-decoration:underline;">
+                    {{ a.company }}
+                </a>
+                — {{ a.type }} 만료일:
+                <span style="color:#b30000; font-weight:bold;">
+                    {{ a.date }}
+                </span>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}

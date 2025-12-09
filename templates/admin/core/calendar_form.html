@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>일정 추가</title>
+</head>
+<body>
+  <h1>일정 추가</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">저장</button>
+    <a href="{% url 'calendar' %}">취소</a>
+  </form>
+</body>
+</html>

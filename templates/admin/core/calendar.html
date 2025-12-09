@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>회사 일정 캘린더</title>
+
+  <!-- ✅ FullCalendar CDN (검증된 버전) -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 20px;
+    }
+    h1{
+        font-size: 32px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    #calendar {
+      max-width: 900px;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>회사 일정 캘린더</h1>
+  <div id="calendar"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+
+    const events = [
+      {% for e in events %}
+      {
+        id: '{{ e.id }}',
+        title: '{{ e.title|escapejs }}',
+        start: '{{ e.start_at|date:"c" }}',
+        {% if e.end_at %}
+        end: '{{ e.end_at|date:"c" }}',
+        {% endif %}
+        url: '{% url "calendar_event_detail" e.id %}',
+      },
+      {% endfor %}
+    ];
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      locale: 'ko',
+      height: 'auto',
+      events: events,
+
+      // ✅ 달력에서 날짜 클릭 → 새 일정 추가 화면으로 이동
+      dateClick: function(info) {
+        const start = info.dateStr;  // "YYYY-MM-DD"
+        window.location.href = '/calendar/events/new/?start=' + encodeURIComponent(start);
+      },
+
+      // ✅ 일정 클릭 → 상세 페이지로 이동
+      eventClick: function(info) {
+        info.jsEvent.preventDefault();  // 기본 링크 동작 막기
+        if (info.event.url) {
+          window.location.href = info.event.url;
+        }
+      },
+    });
+
+    calendar.render();
+  });
+</script>
+
+</body>
+</html>

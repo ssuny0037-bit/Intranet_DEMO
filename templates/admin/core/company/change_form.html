@@ -1,0 +1,31 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+
+  {# 디버그: 개수 표시 #}
+  <div style="font-size:11px; color:#999; margin-bottom:4px;">
+    expiration_alerts 개수: {{ expiration_alerts|length }}
+  </div>
+
+  {% if expiration_alerts %}
+    <div style="background:#ffcccc; padding:10px; border-bottom:2px; margin-bottom:15px;">
+      <strong>⚠️ 호스팅/도메인 만료 예정 알림</strong>
+      <ul style="margin:5px 0 0 15px;">
+        {% for a in expiration_alerts %}
+          <li>
+            <a href="{% url 'admin:core_company_change' a.company_id %}"
+               style="font-weight:bold; text-decoration:underline;">
+              {{ a.company }}
+            </a>
+            — {{ a.type }} 만료일:
+            <span style="color:#b30000; font-weight:bold;">
+              {{ a.date }} — <strong style="color:#d00;">{{ a.dday }}</strong>
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {{ block.super }}
+{% endblock %}

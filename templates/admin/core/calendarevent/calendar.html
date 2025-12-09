@@ -1,0 +1,155 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css">
+  <style>
+    #calendar {
+      max-width: 1000px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 10px;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+  </style>
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+{% endblock %}
+
+{% block content %}
+  <div id="content-main">
+    <h1>{{ title }}</h1>
+
+    <p>
+      <a href="{% url 'admin:core_calendarevent_changelist' %}">← 목록으로 돌아가기</a>
+    </p>
+
+    <div id="calendar"></div>
+  </div>
+
+  {# ✅ 일정 추가용 모달 #}
+  <div id="event-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999;">
+    <div style="max-width:420px; margin:80px auto; background:#fff; padding:16px 20px; border-radius:6px;">
+      <h2>일정 추가</h2>
+      <form method="post" action="{% url 'admin:core_calendarevent_calendar_add' %}">
+        {% csrf_token %}
+        <input type="hidden" name="date" id="modal-date">
+
+        <p>
+          <label for="modal-event-type">종류:</label><br>
+          <select name="event_type" id="modal-event-type">
+            <option value="GENERAL">일반</option>
+            <option value="COMPANY">업체 관련</option>
+            <option value="MEETING">회의</option>
+            <option value="LEAVE">연차/휴가</option>
+          </select>
+        </p>
+
+        <p>
+          <label for="modal-title">제목:</label><br>
+          <input type="text" name="title" id="modal-title" style="width:100%;">
+        </p>
+
+        <p>
+          <label>시작 시간:</label><br>
+          <input type="time" name="start_time" id="modal-start-time" required>
+        </p>
+
+        <p>
+          <label>종료 시간 (선택):</label><br>
+          <input type="time" name="end_time" id="modal-end-time">
+        </p>
+
+        <div style="margin-top:10px; text-align:right;">
+          <button type="button" id="modal-cancel">취소</button>
+          <button type="submit">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarEl = document.getElementById('calendar');
+
+      const events = [
+        {% for e in events %}
+        {
+          id: '{{ e.id }}',
+          title: '{{ e.title|escapejs }}',
+          start: '{{ e.start_at|date:"c" }}',
+          {% if e.end_at %}
+          end: '{{ e.end_at|date:"c" }}',
+          {% endif %}
+          url: '{% url "admin:core_calendarevent_change" e.id %}',
+
+          {% if e.event_type == 'LEAVE' %}
+          backgroundColor: '#ff9aa2',
+          borderColor: '#ff9aa2',
+          {% elif e.event_type == 'COMPANY' %}
+          backgroundColor: '#a2c8ff',
+          borderColor: '#a2c8ff',
+          {% elif e.event_type == 'MEETING' %}
+          backgroundColor: '#b5e8b0',
+          borderColor: '#b5e8b0',
+          {% else %}
+          backgroundColor: '#d9d9d9',
+          borderColor: '#d9d9d9',
+          {% endif %}
+        },
+        {% endfor %}
+      ];
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'ko',
+        height: 'auto',
+        events: events,
+
+        // ✅ 이벤트 클릭 → 기존 수정 화면
+        eventClick: function(info) {
+          info.jsEvent.preventDefault();
+          if (info.event.url) {
+            window.location.href = info.event.url;
+          }
+        },
+
+        // ✅ 날짜 클릭 → 모달 열기
+        dateClick: function(info) {
+          document.getElementById('modal-date').value = info.dateStr;
+          // 기본 시작/종료시간 초기값 (예: 09:00 ~ 10:00)
+          document.getElementById('modal-start-time').value = '09:00';
+          document.getElementById('modal-end-time').value = '10:00';
+          document.getElementById('modal-title').value = '';
+          document.getElementById('modal-event-type').value = 'GENERAL';
+          document.getElementById('event-modal').style.display = 'block';
+        },
+      });
+
+      calendar.render();
+
+      // 모달 닫기 버튼
+      document.getElementById('modal-cancel').addEventListener('click', function () {
+        document.getElementById('event-modal').style.display = 'none';
+      });
+
+      // 종류가 연차/휴가일 때 제목 자동 "연차 신청"
+      const typeSelect = document.getElementById('modal-event-type');
+      const titleInput = document.getElementById('modal-title');
+      if (typeSelect && titleInput) {
+        typeSelect.addEventListener('change', function () {
+          if (this.value === 'LEAVE' && !titleInput.value) {
+            titleInput.value = '연차 신청';
+          }
+        });
+      }
+    });
+  </script>
+{% endblock %}
+
