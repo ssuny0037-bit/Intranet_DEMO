@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.template.response import TemplateResponse
 from django.urls import path
 from django.utils.safestring import mark_safe
+from django import forms              
+from django.db import models          
 from .models import (
     Company,
     CompanySite,
@@ -124,6 +126,15 @@ class CompanyMemoInline(admin.TabularInline):
     extra = 1
     fields = ('created_at', 'author', 'content')
     readonly_fields = ('created_at', 'author')
+
+    formfield_overrides = {
+        models.TextField: {
+            'widget': forms.Textarea(attrs={
+                'rows': 3,          # 줄 수 (2~3줄 정도 높이)
+                'style': 'width: 95%;',
+            })
+        }
+    }
 
 
 class CompanyTagInline(admin.TabularInline):
