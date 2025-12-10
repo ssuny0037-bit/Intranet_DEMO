@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}리플레이컴퍼니 INTRANET{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}">리플레이컴퍼니 | INTRANET</a>
+</h1>
+
+{% endblock %}
+
+{# 사이드바는 기본(admin/base.html) 것을 그대로 사용 #}
+{% block sidebar %}
+  {{ block.super }}
+{% endblock %}

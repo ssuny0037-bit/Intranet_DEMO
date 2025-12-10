@@ -1,10 +1,8 @@
 from datetime import datetime, time, timedelta
-
 from django.contrib import admin
 from django.template.response import TemplateResponse
 from django.urls import path
 from django.utils.safestring import mark_safe
-
 from .models import (
     Company,
     CompanySite,
@@ -15,6 +13,10 @@ from .models import (
     CalendarEvent,
 )
 from datetime import date
+
+admin.site.site_header = "리플레이컴퍼니 INTRANET"      # 왼쪽 상단 큰 제목
+admin.site.site_title = "리플레이컴퍼니 INTRANET"       # 브라우저 탭 타이틀
+admin.site.index_title = "사이트 관리"                   # 그 아래 "사이트 관리" 글자
 
 def get_expiration_alerts():
     """호스팅/도메인 만료가 30일 이내인 사이트 목록을 돌려준다."""

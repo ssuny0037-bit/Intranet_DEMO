@@ -32,7 +32,7 @@ class CompanyTag(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return f'{self.company.name} - #{self.name}'
+        return f'#{self.name}'
 
 class CompanyMemo(models.Model):
     company = models.ForeignKey(
@@ -48,12 +48,12 @@ class CompanyMemo(models.Model):
         blank=True,
         verbose_name='작성자'
     )
-    content = models.TextField('메모 내용')
+    content = models.TextField('상담내용')
     created_at = models.DateTimeField('작성일시', auto_now_add=True)
 
     class Meta:
-        verbose_name = '업체 메모'
-        verbose_name_plural = '업체 메모 목록'
+        verbose_name = '상담'
+        verbose_name_plural = '상담내역'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -77,20 +77,42 @@ class CompanySite(models.Model):
 
     def __str__(self):
         return f'{self.company.name} 사이트 정보'
+    
+class Team(models.Model):
+    name = models.CharField('팀명', max_length=100)
+    description = models.CharField('설명', max_length=200, blank=True)
+
+    class Meta:
+        verbose_name = '팀'
+        verbose_name_plural = '팀 목록'
+
+    def __str__(self):
+        return self.name
 
 
 class Employee(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee_profile')
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='employee_profile'
+    )
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='팀/부서',
+        related_name='employees',
+    )
     position = models.CharField('직급', max_length=50, blank=True)
-    team = models.CharField('팀/부서', max_length=50, blank=True)
     phone = models.CharField('전화번호', max_length=30, blank=True)
-    class Meta:
-        verbose_name = "직원"
-        verbose_name_plural = "직원 목록"
 
     def __str__(self):
         return self.user.get_full_name() or self.user.username
 
+    class Meta:
+        verbose_name = '직원'
+        verbose_name_plural = '직원 목록'
 
 class CompanyRequest(models.Model):
     STATUS_CHOICES = [
