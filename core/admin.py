@@ -3,8 +3,8 @@ from django.contrib import admin
 from django.template.response import TemplateResponse
 from django.urls import path
 from django.utils.safestring import mark_safe
-from django import forms              
-from django.db import models          
+from django import forms
+from django.db import models
 from .models import (
     Company,
     CompanySite,
@@ -15,6 +15,49 @@ from .models import (
     CalendarEvent,
 )
 from datetime import date
+
+TAG_CHOICES = [
+    ("마케팅", "마케팅"),
+    ("홈페이지(신규)", "홈페이지(신규)"),
+    ("홈페이지(유지보수)", "홈페이지(유지보수)"),
+    ("바이럴", "바이럴"),
+    ("인쇄물", "인쇄물"),
+    ("브랜딩", "브랜딩"),
+]
+
+
+class CompanyAdminForm(forms.ModelForm):
+    tags_choices = forms.MultipleChoiceField(
+        label="업체 태그 목록",
+        required=False,
+        choices=TAG_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        model = Company
+        fields = ("name", "memo", "tags_choices")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields["tags_choices"].initial = list(
+                self.instance.tags.values_list("name", flat=True)
+            )
+
+    def save(self, commit=True):
+        company = super().save(commit)
+        selected_tags = self.cleaned_data.get("tags_choices", [])
+
+        if commit and company.pk:
+            company.tags.exclude(name__in=selected_tags).delete()
+
+            existing = set(company.tags.values_list("name", flat=True))
+            for tag_name in selected_tags:
+                if tag_name not in existing:
+                    CompanyTag.objects.create(company=company, name=tag_name)
+
+        return company
 
 admin.site.site_header = "리플레이컴퍼니 INTRANET"      # 왼쪽 상단 큰 제목
 admin.site.site_title = "리플레이컴퍼니 INTRANET"       # 브라우저 탭 타이틀
@@ -145,15 +188,16 @@ class CompanyTagInline(admin.TabularInline):
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
+    form = CompanyAdminForm
     list_display = ('name', 'site_domain', 'tag_list')
     search_fields = ('name', 'memo')
 
     # ✅ 이 템플릿을 업체 수정 화면에 쓰겠다는 선언
     change_form_template = "admin/core/company/change_form.html"
 
-    inlines = [CompanyTagInline, CompanySiteInline, CompanyEventInline, CompanyMemoInline]
+    inlines = [CompanySiteInline, CompanyEventInline, CompanyMemoInline]
 
-    fields = ('name', 'memo')
+    fields = ('name', 'memo', 'tags_choices')
 
     def site_domain(self, obj):
         if hasattr(obj, 'site') and obj.site and obj.site.domain:
