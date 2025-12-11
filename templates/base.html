@@ -1,18 +1,22 @@
-{% if expiration_alerts %}
-<div style="background:#ffcccc; padding:10px; border-bottom:2px solid #ff0000;">
-    <strong>⚠️ 만료 예정 알림:</strong>
-    <ul style="margin:5px 0 0 15px;">
-        {% for a in expiration_alerts %}
-            <li>
-                <a href="{{ a.url }}" style="font-weight:bold; color:#b30000; text-decoration:underline;">
-                    {{ a.company }}
-                </a>
-                — {{ a.type }} 만료일:
-                <span style="color:#b30000; font-weight:bold;">
-                    {{ a.date }}
-                </span>
-            </li>
+  {# 🔔 호스팅/도메인 만료 알림 박스 (있을 때만) #}
+  {% if expiration_alerts %}
+    <div style="border: 2px solid #c0392b; background:#fdf2f2; padding:10px 15px; margin-bottom:20px;">
+      <strong>⚠ 만료 예정 호스팅/도메인</strong>
+      <ul style="margin:8px 0 0 18px;">
+        {% for alert in expiration_alerts %}
+          <li>
+            {% if alert.url %}
+              <a href="{{ alert.url }}">
+            {% elif alert.company_id %}
+              <a href="{% url 'admin:core_company_change' alert.company_id %}">
+            {% else %}
+              <a>
+            {% endif %}
+              {{ alert.company }}
+            </a>
+            – {{ alert.type }} 만료일: {{ alert.date }}{% if alert.dday %} ({{ alert.dday }}){% endif %}
+          </li>
         {% endfor %}
-    </ul>
-</div>
-{% endif %}
+      </ul>
+    </div>
+  {% endif %}

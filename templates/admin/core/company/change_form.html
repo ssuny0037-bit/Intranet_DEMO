@@ -1,26 +1,35 @@
 {% extends "admin/change_form.html" %}
+{% load i18n %}
 
+{# 상단 제목 조금만 손보기 (선택사항) #}
+{% block content_title %}
+  {% if original %}
+    <h1>{{ original.name }} 수정</h1>
+  {% else %}
+    <h1>업체 추가</h1>
+  {% endif %}
+{% endblock %}
+
+{# 본문 영역: 만료 알림 + 기본 폼 #}
 {% block content %}
 
-  {# 디버그: 개수 표시 #}
-  <div style="font-size:11px; color:#999; margin-bottom:4px;">
-    expiration_alerts 개수: {{ expiration_alerts|length }}
-  </div>
-
+  {# 🔔 호스팅/도메인 만료 알림 박스 (있을 때만) #}
   {% if expiration_alerts %}
-    <div style="background:#ffcccc; padding:10px; border-bottom:2px; margin-bottom:15px;">
-      <strong>⚠️ 호스팅/도메인 만료 예정 알림</strong>
-      <ul style="margin:5px 0 0 15px;">
-        {% for a in expiration_alerts %}
+    <div style="border: 2px solid #c0392b; background:#fdf2f2; padding:10px 15px; margin-bottom:20px;">
+      <strong>⚠ 만료 예정 호스팅/도메인</strong>
+      <ul style="margin:8px 0 0 18px;">
+        {% for alert in expiration_alerts %}
           <li>
-            <a href="{% url 'admin:core_company_change' a.company_id %}"
-               style="font-weight:bold; text-decoration:underline;">
-              {{ a.company }}
+            {% if alert.url %}
+              <a href="{{ alert.url }}">
+            {% elif alert.company_id %}
+              <a href="{% url 'admin:core_company_change' alert.company_id %}">
+            {% else %}
+              <a>
+            {% endif %}
+              {{ alert.company }}
             </a>
-            — {{ a.type }} 만료일:
-            <span style="color:#b30000; font-weight:bold;">
-              {{ a.date }} — <strong style="color:#d00;">{{ a.dday }}</strong>
-            </span>
+            – {{ alert.type }} 만료일: {{ alert.date }}{% if alert.dday %} ({{ alert.dday }}){% endif %}
           </li>
         {% endfor %}
       </ul>
@@ -28,4 +37,5 @@
   {% endif %}
 
   {{ block.super }}
+
 {% endblock %}
